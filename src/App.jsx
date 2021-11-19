@@ -4,15 +4,15 @@ import { useLocalStorage } from './utils/useLocalStorage';
 import classNames from 'classnames';
 import './App.css';
 
-let initialTodos = [
-  { title: 'Change winter tires', id: '1927', completed: false },
-  { title: 'Check pressure', id: '1312', completed: false },
-  { title: 'Repair water tap', id: '1610', completed: true },
-  { title: 'Buy beer for barbeckue', id: '1584', completed: false }
-]
+// let initialTodos = [
+//   { title: 'Change winter tires', id: '1927', completed: false },
+//   { title: 'Check pressure', id: '1312', completed: false },
+//   { title: 'Repair water tap', id: '1610', completed: true },
+//   { title: 'Buy beer for barbeckue', id: '1584', completed: false }
+// ]
 
 function App() {
-  const [todos, setTodos] = useLocalStorage('todos', initialTodos);
+  const [todos, setTodos] = useLocalStorage('todos', []);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
 
