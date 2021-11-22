@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { TodoList } from './components/TodoList';
 import { useLocalStorage } from './utils/useLocalStorage';
+import { TodosContext } from './utils/TodosContext';
 import classNames from 'classnames';
 import './App.css';
 
@@ -16,14 +17,18 @@ function App() {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
 
-  const activeTodos = todos.filter(todo => (
+  const activeTodos = useMemo(() => {
+    return todos.filter(todo => (
     todo.completed === false
   ))
-  const completedTodos = todos.filter(todo => (
-    todo.completed === true
-  ))
+  }, [todos])
+  const completedTodos = useMemo(() => {
+    return todos.filter(todo => (
+      todo.completed === true
+    ))
+  }, [todos])
 
-  const addTodo = (title) => {
+  const addTodo = useCallback((title) => {
     const newTodo = {
       title,
       completed: false,
@@ -32,16 +37,16 @@ function App() {
     return (
       setTodos([...todos, newTodo])
     )
-  }
+  }, [todos, setTodos])
 
-  const submitHandler = (event) => {
+  const submitHandler = useCallback((event) => {
     event.preventDefault();
     if (!query) { return }
     addTodo(query);
     setQuery('');
-  }
+  }, [addTodo, query])
 
-  const editTodo = (todoId, newTitle) => {
+  const editTodo = useCallback((todoId, newTitle) => {
     setTodos(
       [...todos].map(todo => {
         if (todo.id !== todoId) {
@@ -53,23 +58,24 @@ function App() {
         }
       })
     )
-  }
+  }, [todos, setTodos])
 
-  const removeTodo = (todoId) => {
+
+  const removeTodo = useCallback((todoId) => {
     setTodos(
       [...todos].filter(todo => todo.id !== todoId)
     )
-  }
+  }, [todos, setTodos])
 
-  const clearCompleted = () => {
+  const clearCompleted = useCallback(() => {
     setTodos(
       [...todos.filter(todo => (
         todo.completed !== true
       ))]
     )
-  }
+  }, [todos, setTodos])
 
-  const completeTodo = (todoId) => {
+  const completeTodo = useCallback((todoId) => {
     setTodos(
       [...todos.map(todo => {
         if (todo.id !== todoId) {
@@ -81,9 +87,9 @@ function App() {
         }
       })]
     )
-  }
+  }, [todos, setTodos]);
 
-  const setAllCompleted = () => {
+  const setAllCompleted = useCallback(() => {
     setTodos(
       [...todos.map(todo => {
         if (completedTodos.length === todos.length) {
@@ -98,28 +104,29 @@ function App() {
         }
       })]
     )
-  }
+  }, [todos, setTodos]);
 
-  let visibleTodos = [...todos];
-  switch (filter) {
-    case 'active':
-      visibleTodos = activeTodos;
-      break;
-    case 'completed':
-      visibleTodos = completedTodos;
-      break;
-    default: visibleTodos = todos;
-  }
+  const visibleTodos = useMemo(() => {
+    switch (filter) {
+      case 'active':
+        return activeTodos;
+      case 'completed':
+        return completedTodos;
+      default: return todos;
+    }
+  }, [todos, filter, activeTodos, completedTodos])
 
-  const showAll = () => {
+  const showAll = useCallback(() => {
     setFilter('all');
-  }
-  const showActive = () => {
+  }, [])
+  const showActive = useCallback(() => {
     setFilter('active')
-  }
-  const showCompleted = () => {
+  }, [])
+  const showCompleted = useCallback(() => {
     setFilter('completed')
-  }
+  }, [])
+
+  console.log('Rendering App');
 
   return (
     <>
@@ -134,6 +141,7 @@ function App() {
               placeholder="What needs to be done?"
               value={query}
               onChange={event => setQuery(event.target.value)}
+              onBlur={(submitHandler)}
             />
           </form>
         </header>
@@ -149,12 +157,15 @@ function App() {
                 Mark all as complete
               </label>
 
-              <TodoList
-                todos={visibleTodos}
-                onRemove={removeTodo}
-                onComplete={completeTodo}
-                editTodo={editTodo}
-              />
+              <TodosContext.Provider value={{
+                todos: visibleTodos,
+                onRemove: removeTodo,
+                onComplete: completeTodo,
+                editTodo: editTodo,
+              }} >
+                <TodoList />
+              </TodosContext.Provider>
+
             </section>
 
             <footer className="footer">
