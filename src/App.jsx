@@ -126,7 +126,14 @@ function App() {
     setFilter('completed')
   }, [])
 
-  console.log('Rendering App');
+  const contextValue = useMemo(() => {
+    return ({
+      todos: visibleTodos,
+      removeTodo,
+      completeTodo,
+      editTodo,
+    })
+  }, [visibleTodos, removeTodo, completeTodo, editTodo]);
 
   return (
     <>
@@ -157,12 +164,7 @@ function App() {
                 Mark all as complete
               </label>
 
-              <TodosContext.Provider value={{
-                todos: visibleTodos,
-                onRemove: removeTodo,
-                onComplete: completeTodo,
-                editTodo: editTodo,
-              }} >
+              <TodosContext.Provider value={contextValue} >
                 <TodoList />
               </TodosContext.Provider>
 
